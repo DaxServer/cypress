@@ -1,4 +1,12 @@
 <!-- See the ../guides/writing-the-cypress-changelog.md for details on writing the changelog. -->
+## 15.9.0
+
+_Released TBD_
+
+**Features:**
+
+- Added support for using Bun as a package manager. Cypress will now detect `bun.lockb` and use the appropriate Bun commands for installation and dependency management. Addresses [#32580](https://github.com/cypress-io/cypress/pull/32580).
+
 ## 15.8.2
 
 _Released 01/06/2026_
