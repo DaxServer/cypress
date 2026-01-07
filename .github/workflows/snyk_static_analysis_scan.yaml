@@ -8,6 +8,8 @@ on:
     branches:
       - develop
       - release/*
+    paths-ignore:
+      - '.github/workflows/release-macos.yml'
 jobs:
   Snyk_SAST_Scan:
     # Skip this job on PRs from forks

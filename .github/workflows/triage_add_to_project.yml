@@ -16,6 +16,8 @@ on:
   pull_request_target:
     types:
       - opened
+    paths-ignore:
+      - '.github/workflows/release-macos.yml'
 
 jobs:
   add-to-triage-project:
