@@ -1,0 +1,65 @@
+name: Release macOS
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-macos:
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            runner: macos-13
+            platform: darwin
+          - arch: arm64
+            runner: macos-latest
+            platform: darwin
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: yarn --network-timeout 300000
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Build and package Electron app
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v}
+          echo "Building version $VERSION for ${{ matrix.arch }} (${{ matrix.runner }})"
+          yarn binary-build --version $VERSION --platform ${{ matrix.platform }}
+
+      - name: Create zip archive
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v}
+          yarn binary-zip --platform ${{ matrix.platform }}
+
+      - name: Rename zip with architecture
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v}
+          mv cypress.zip cypress-${VERSION}-darwin-${{ matrix.arch }}.zip
+          echo "ZIP_FILE=cypress-${VERSION}-darwin-${{ matrix.arch }}.zip" >> $GITHUB_ENV
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_FILE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
