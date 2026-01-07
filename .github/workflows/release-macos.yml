@@ -1,0 +1,55 @@
+name: Release macOS
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: yarn --network-timeout 300000
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Build and package Electron app
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v}
+          echo "Building version $VERSION for macOS (Apple Silicon)"
+          yarn binary-build --version $VERSION --platform darwin
+
+      - name: Create zip archive
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v}
+          yarn binary-zip --platform darwin
+
+      - name: Rename zip
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION=${VERSION#v}
+          mv cypress.zip cypress-${VERSION}-darwin-arm64.zip
+          echo "ZIP_FILE=cypress-${VERSION}-darwin-arm64.zip" >> $GITHUB_ENV
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_FILE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
