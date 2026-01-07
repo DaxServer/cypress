@@ -10,17 +10,7 @@ permissions:
 
 jobs:
   release-macos:
-    strategy:
-      matrix:
-        include:
-          - arch: x64
-            runner: macos-13
-            platform: darwin
-          - arch: arm64
-            runner: macos-latest
-            platform: darwin
-
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-latest
 
     steps:
       - name: Checkout
@@ -41,21 +31,21 @@ jobs:
         run: |
           VERSION=${{ github.ref_name }}
           VERSION=${VERSION#v}
-          echo "Building version $VERSION for ${{ matrix.arch }} (${{ matrix.runner }})"
-          yarn binary-build --version $VERSION --platform ${{ matrix.platform }}
+          echo "Building version $VERSION for macOS (Apple Silicon)"
+          yarn binary-build --version $VERSION --platform darwin
 
       - name: Create zip archive
         run: |
           VERSION=${{ github.ref_name }}
           VERSION=${VERSION#v}
-          yarn binary-zip --platform ${{ matrix.platform }}
+          yarn binary-zip --platform darwin
 
-      - name: Rename zip with architecture
+      - name: Rename zip
         run: |
           VERSION=${{ github.ref_name }}
           VERSION=${VERSION#v}
-          mv cypress.zip cypress-${VERSION}-darwin-${{ matrix.arch }}.zip
-          echo "ZIP_FILE=cypress-${VERSION}-darwin-${{ matrix.arch }}.zip" >> $GITHUB_ENV
+          mv cypress.zip cypress-${VERSION}-darwin-arm64.zip
+          echo "ZIP_FILE=cypress-${VERSION}-darwin-arm64.zip" >> $GITHUB_ENV
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
